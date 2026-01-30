@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import { FileUpload } from "@/components/web/file-upload";
-import { uploadToAppwrite } from "@/lib/appwrite-upload";
+import { uploadFilesInBatches } from "@/lib/appwrite-upload";
 import { orpc } from "@/lib/orpc";
 import HeroSection from "@/components/web/hero-section";
 import ShareResult, {
@@ -14,6 +14,11 @@ import ShareResult, {
 export default function Home() {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({
+    completed: 0,
+    total: 0,
+  });
 
   const createSession = useMutation(
     orpc.file.createSession.mutationOptions({
@@ -28,30 +33,32 @@ export default function Home() {
 
     setIsUploading(true);
     setShareToken(null);
+    setUploadProgress({ completed: 0, total: files.length });
 
-    const uploadedFiles: {
-      name: string;
-      size: number;
-      storageKey: string;
-      path: string;
-    }[] = [];
+    try {
+      const results = await uploadFilesInBatches(files, (completed, total) => {
+        setUploadProgress({ completed, total });
+      });
 
-    for (const file of files) {
-      const storageKey = await uploadToAppwrite(file);
-
-      uploadedFiles.push({
+      const uploadedFiles = results.map(({ file, storageKey }) => ({
         name: file.name,
         size: file.size,
         storageKey,
-        path: file.webkitRelativePath || file.name,
-      });
-    }
+        path: (file as any).webkitRelativePath || file.name,
+      }));
 
-    createSession.mutate(uploadedFiles, {
-      onSettled: () => {
-        setIsUploading(false);
-      },
-    });
+      setIsCreatingSession(true);
+      createSession.mutate(uploadedFiles, {
+        onSettled: () => {
+          setIsUploading(false);
+          setIsCreatingSession(false);
+        },
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setIsUploading(false);
+      // You could add a toast notification here
+    }
   }
 
   const shareUrl =
@@ -66,8 +73,14 @@ export default function Home() {
 
         {/* Share Result - show skeleton while uploading, real result when done */}
         <AnimatePresence mode="wait">
-          {isUploading && <ShareResultSkeleton key="skeleton" />}
-          {shareUrl && !isUploading && (
+          {(isUploading || isCreatingSession) && (
+            <ShareResultSkeleton
+              key="skeleton"
+              progress={uploadProgress.total > 0 ? uploadProgress : undefined}
+              isCreatingSession={isCreatingSession}
+            />
+          )}
+          {shareUrl && !isUploading && !isCreatingSession && (
             <ShareResult key="result" url={shareUrl} />
           )}
         </AnimatePresence>

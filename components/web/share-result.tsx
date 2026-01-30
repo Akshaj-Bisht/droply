@@ -2,11 +2,23 @@ import { motion } from "motion/react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Copy, Download, ArrowRight } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
+import { Check, Copy, Download, ArrowRight, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 
 /* Skeleton Loading State */
-export function ShareResultSkeleton() {
+export function ShareResultSkeleton({
+  progress,
+  isCreatingSession,
+}: {
+  progress?: { completed: number; total: number };
+  isCreatingSession?: boolean;
+}) {
+  const percentage = progress
+    ? Math.round((progress.completed / progress.total) * 100)
+    : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -15,32 +27,66 @@ export function ShareResultSkeleton() {
       transition={{ duration: 0.3 }}
       className="mx-auto mt-8 max-w-2xl rounded-2xl border bg-card p-8 shadow-lg"
     >
-      {/* Title skeleton */}
-      <div className="flex justify-center">
-        <Skeleton className="h-7 w-56" />
-      </div>
+      {/* Creating Session */}
+      {isCreatingSession && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <Spinner className="size-5" />
+            <span className="text-sm font-medium">Creating share link...</span>
+          </div>
+          <Progress value={100} className="h-2" />
+          <p className="text-center text-xs text-muted-foreground">
+            Almost done!
+          </p>
+        </div>
+      )}
 
-      {/* Link box skeleton */}
-      <div className="mt-5 flex items-center gap-2 rounded-xl border bg-muted/30 px-4 py-3">
-        <Skeleton className="h-5 flex-1" />
-        <Skeleton className="h-9 w-9 rounded-lg" />
-      </div>
+      {/* Upload Progress */}
+      {progress && !isCreatingSession && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <Spinner className="size-5" />
+            <span className="text-sm font-medium">
+              Uploading {progress.completed} of {progress.total} files...
+            </span>
+          </div>
+          <Progress value={percentage} className="h-2" />
+          <p className="text-center text-xs text-muted-foreground">
+            {percentage}% complete
+          </p>
+        </div>
+      )}
 
-      {/* QR skeleton */}
-      <div className="mt-8 flex justify-center">
-        <Skeleton className="h-40 w-40 rounded-xl" />
-      </div>
+      {!progress && !isCreatingSession && (
+        <>
+          {/* Title skeleton */}
+          <div className="flex justify-center">
+            <Skeleton className="h-7 w-56" />
+          </div>
 
-      {/* QR actions skeleton */}
-      <div className="mt-6 flex gap-3 justify-center">
-        <Skeleton className="h-10 w-28 rounded-lg" />
-        <Skeleton className="h-10 w-36 rounded-lg" />
-      </div>
+          {/* Link box skeleton */}
+          <div className="mt-5 flex items-center gap-2 rounded-xl border bg-muted/30 px-4 py-3">
+            <Skeleton className="h-5 flex-1" />
+            <Skeleton className="h-9 w-9 rounded-lg" />
+          </div>
 
-      {/* Button skeleton */}
-      <div className="mt-8 flex justify-center">
-        <Skeleton className="h-11 w-full rounded-lg" />
-      </div>
+          {/* QR skeleton */}
+          <div className="mt-8 flex justify-center">
+            <Skeleton className="h-40 w-40 rounded-xl" />
+          </div>
+
+          {/* QR actions skeleton */}
+          <div className="mt-6 flex gap-3 justify-center">
+            <Skeleton className="h-10 w-28 rounded-lg" />
+            <Skeleton className="h-10 w-36 rounded-lg" />
+          </div>
+
+          {/* Button skeleton */}
+          <div className="mt-8 flex justify-center">
+            <Skeleton className="h-11 w-full rounded-lg" />
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }
@@ -51,14 +97,14 @@ export default function ShareResult({ url }: { url: string }) {
   const [copiedQR, setCopiedQR] = useState(false);
   const qrRef = useRef<HTMLCanvasElement>(null);
 
-  /* ---------------- Copy Link ---------------- */
+  /*Copy Link*/
   async function copyLink() {
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
-  /* ---------------- Copy QR ---------------- */
+  /* Copy QR  */
   async function copyQR() {
     if (!qrRef.current) return;
 
@@ -73,7 +119,7 @@ export default function ShareResult({ url }: { url: string }) {
     setTimeout(() => setCopiedQR(false), 1500);
   }
 
-  /* ---------------- Download QR ---------------- */
+  /*Download QR*/
   function downloadQR() {
     if (!qrRef.current) return;
 

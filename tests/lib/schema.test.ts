@@ -38,7 +38,7 @@ describe("Schema Validation", () => {
       expect(result.success).toBe(false);
     });
 
-    it("should reject zero or negative size", () => {
+    it("should accept zero-byte files but reject negative size", () => {
       const zeroSize = {
         name: "test.txt",
         size: 0,
@@ -53,7 +53,7 @@ describe("Schema Validation", () => {
         path: "test.txt",
       };
 
-      expect(uploadFileSchema.safeParse(zeroSize).success).toBe(false);
+      expect(uploadFileSchema.safeParse(zeroSize).success).toBe(true);
       expect(uploadFileSchema.safeParse(negativeSize).success).toBe(false);
     });
 

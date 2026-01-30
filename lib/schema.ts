@@ -4,7 +4,7 @@ export const MAX_TOTAL_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
 
 export const uploadFileSchema = z.object({
   name: z.string().min(1),
-  size: z.number().positive(),
+  size: z.number().nonnegative(),
   storageKey: z.string().min(1),
   path: z.string().min(1),
 });
