@@ -1,7 +1,6 @@
-import { Client, Storage } from "node-appwrite";
+import { Client, Storage } from "appwrite";
 export const client = new Client()
   .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "")
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "")
-  .setKey(process.env.NEXT_PUBLIC_APPWRITE_API_KEY || "");
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "");
 
 export const storage = new Storage(client);

@@ -1,8 +1,8 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import { createRouterClient } from "@orpc/server";
-import { router } from "@/app/router";
+import { createRouterClient, RouterClient } from "@orpc/server";
+import { router } from "@/app/router/file.route";
 
 globalThis.$client = createRouterClient(router, {
   /**
@@ -16,3 +16,5 @@ globalThis.$client = createRouterClient(router, {
     headers: await headers(), // provide headers if initial context required
   }),
 });
+export const orpc: RouterClient<typeof router> =
+  globalThis.$client ?? createRouterClient(router);

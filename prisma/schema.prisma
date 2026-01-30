@@ -13,12 +13,25 @@ datasource db {
   provider = "postgresql"
 }
 
+model UploadSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  files File[]
+}
+
 model File {
-  id         String   @id @default(cuid())
-  token      String   @unique
+  id         String        @id @default(cuid())
   name       String
   size       Int
   storageKey String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  path       String
+  downloads  Int           @default(0)
+  createdAt  DateTime      @default(now())
+  sessionId  String
+  session    UploadSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }
