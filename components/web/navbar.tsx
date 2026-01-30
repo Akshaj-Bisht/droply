@@ -1,4 +1,8 @@
+"use client";
+
 import { ThemeToggle } from "@/components/web/theme-toggle";
+import { Droplet } from "lucide-react";
+import Link from "next/link";
 
 function GithubIcon({ className }: { className?: string }) {
   return (
@@ -16,10 +20,15 @@ function GithubIcon({ className }: { className?: string }) {
 export default function Navbar() {
   return (
     <nav className="  flex items-center justify-between rounded-full border bg-background/70 backdrop-blur px-6 py-3">
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-full bg-linear-to-br from-violet-500 to-pink-500" />
+      <Link
+        href="/"
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-pink-500">
+          <Droplet className="h-5 w-5 text-white fill-white/30" />
+        </div>
         <span className="text-xl font-bold">Droply</span>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-2">
         <a

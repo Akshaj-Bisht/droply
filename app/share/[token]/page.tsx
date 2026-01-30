@@ -1,5 +1,6 @@
 import { orpc } from "@/lib/orpc.server";
 import { Button } from "@/components/ui/button";
+import Navbar from "@/components/web/navbar";
 import {
   Download,
   File,
@@ -100,15 +101,20 @@ export default async function SharePage({
 
   if (!session) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-            <File className="h-8 w-8 text-muted-foreground" />
+      <main className="min-h-screen bg-background">
+        <div className="mx-auto max-w-6xl px-2 py-6">
+          <Navbar />
+        </div>
+        <div className="flex items-center justify-center p-6 pt-20">
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <File className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold">File not found</h1>
+            <p className="text-muted-foreground">
+              This link has expired or doesn't exist.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold">File not found</h1>
-          <p className="text-muted-foreground">
-            This link has expired or doesn't exist.
-          </p>
         </div>
       </main>
     );
@@ -118,10 +124,13 @@ export default async function SharePage({
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-2 py-6">
+        <Navbar />
+      </div>
+      <div className="mx-auto max-w-3xl px-6 py-8">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Droply</h1>
+          <h1 className="text-3xl font-bold">Someone shared files with you</h1>
           <p className="text-muted-foreground">
             {session.files.length}{" "}
             {session.files.length === 1 ? "file" : "files"} •{" "}

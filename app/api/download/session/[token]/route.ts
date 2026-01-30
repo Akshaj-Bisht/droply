@@ -3,6 +3,19 @@ import { storage } from "@/lib/appwrite";
 import archiver from "archiver";
 import { NextResponse } from "next/server";
 
+async function fetchFileContent(storageKey: string): Promise<ArrayBuffer> {
+  const downloadUrl = storage.getFileDownload({
+    bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
+    fileId: storageKey,
+  });
+
+  const response = await fetch(downloadUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file: ${response.statusText}`);
+  }
+  return response.arrayBuffer();
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ token: string }> },
@@ -38,10 +51,7 @@ export async function GET(
 
   (async () => {
     for (const file of session.files) {
-      const buffer = await storage.getFileDownload({
-        bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
-        fileId: file.storageKey,
-      });
+      const buffer = await fetchFileContent(file.storageKey);
 
       archive.append(Buffer.from(buffer), {
         name: file.path,
