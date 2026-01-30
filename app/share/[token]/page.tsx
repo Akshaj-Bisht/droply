@@ -15,9 +15,13 @@ import {
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Someone shared files with you - Droply",
+  title: "Download Shared Files",
   description:
-    "Download shared files securely. Files auto-delete after 24 hours.",
+    "Someone shared files with you on Droply. Download them securely before they expire.",
+  robots: {
+    index: false, // Don't index share pages
+    follow: false,
+  },
 };
 
 /* Get file icon based on extension */

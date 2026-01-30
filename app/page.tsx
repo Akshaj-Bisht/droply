@@ -57,7 +57,6 @@ export default function Home() {
     } catch (error) {
       console.error("Upload failed:", error);
       setIsUploading(false);
-      // You could add a toast notification here
     }
   }
 
@@ -71,7 +70,6 @@ export default function Home() {
         {/* Upload UI */}
         <FileUpload onUpload={handleUpload} />
 
-        {/* Share Result - show skeleton while uploading, real result when done */}
         <AnimatePresence mode="wait">
           {(isUploading || isCreatingSession) && (
             <ShareResultSkeleton
