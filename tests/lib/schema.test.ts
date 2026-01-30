@@ -141,6 +141,64 @@ describe("Schema Validation", () => {
       const result = createSessionSchema.safeParse(files);
       expect(result.success).toBe(true);
     });
+
+    it("should reject files just over 1GB total", () => {
+      const files = [
+        {
+          name: "file1.txt",
+          size: MAX_TOTAL_SIZE + 1,
+          storageKey: "key1",
+          path: "file1.txt",
+        },
+      ];
+
+      const result = createSessionSchema.safeParse(files);
+      expect(result.success).toBe(false);
+    });
+
+    it("should handle many small files within limit", () => {
+      const files = Array.from({ length: 100 }, (_, i) => ({
+        name: `file${i}.txt`,
+        size: 10 * 1024 * 1024, // 10MB each = 1000MB total (under 1GB)
+        storageKey: `key${i}`,
+        path: `file${i}.txt`,
+      }));
+
+      const result = createSessionSchema.safeParse(files);
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject when many small files exceed limit", () => {
+      const files = Array.from({ length: 110 }, (_, i) => ({
+        name: `file${i}.txt`,
+        size: 10 * 1024 * 1024, // 10MB each = 1100MB total (over 1GB)
+        storageKey: `key${i}`,
+        path: `file${i}.txt`,
+      }));
+
+      const result = createSessionSchema.safeParse(files);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject files with invalid nested properties", () => {
+      const files = [
+        {
+          name: "valid.txt",
+          size: 1024,
+          storageKey: "key1",
+          path: "valid.txt",
+        },
+        {
+          name: "", // Invalid: empty name
+          size: 1024,
+          storageKey: "key2",
+          path: "invalid.txt",
+        },
+      ];
+
+      const result = createSessionSchema.safeParse(files);
+      expect(result.success).toBe(false);
+    });
   });
 
   describe("getSessionSchema", () => {
@@ -169,6 +227,21 @@ describe("Schema Validation", () => {
       const emptyToken = { token: "" };
 
       const result = getSessionSchema.safeParse(emptyToken);
+      expect(result.success).toBe(false);
+    });
+
+    it("should validate hex token format", () => {
+      // Real token from randomBytes(16).toString('hex')
+      const hexToken = { token: "a1b2c3d4e5f6789012345678abcdef00" };
+
+      const result = getSessionSchema.safeParse(hexToken);
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject missing token property", () => {
+      const noToken = {};
+
+      const result = getSessionSchema.safeParse(noToken);
       expect(result.success).toBe(false);
     });
   });
