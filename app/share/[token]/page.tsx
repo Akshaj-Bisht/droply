@@ -165,36 +165,38 @@ export default async function SharePage({
           </div>
 
           <div className="divide-y">
-            {session.files.map((file) => {
-              const Icon = getFileIcon(file.name);
+            {session.files.map(
+              (file: { id: string; name: string; size: number }) => {
+                const Icon = getFileIcon(file.name);
 
-              return (
-                <div
-                  key={file.id}
-                  className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors"
-                >
-                  {/* File Icon */}
-                  <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
+                return (
+                  <div
+                    key={file.id}
+                    className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors"
+                  >
+                    {/* File Icon */}
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+
+                    {/* File Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{file.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+
+                    {/* Download Button */}
+                    <Button variant="ghost" size="icon" asChild>
+                      <a href={`/api/download/${file.id}`}>
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
                   </div>
-
-                  {/* File Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
-
-                  {/* Download Button */}
-                  <Button variant="ghost" size="icon" asChild>
-                    <a href={`/api/download/${file.id}`}>
-                      <Download className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              );
-            })}
+                );
+              },
+            )}
           </div>
         </div>
 
