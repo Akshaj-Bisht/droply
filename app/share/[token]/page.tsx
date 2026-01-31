@@ -125,7 +125,7 @@ export default async function SharePage({
   }
 
   const totalSize = session.files.reduce(
-    (acc: number, file) => acc + file.size,
+    (acc: number, file: { size: number }) => acc + file.size,
     0,
   );
   return (
