@@ -124,8 +124,10 @@ export default async function SharePage({
     );
   }
 
-  const totalSize = session.files.reduce((acc, file) => acc + file.size, 0);
-
+  const totalSize = session.files.reduce(
+    (acc: number, file) => acc + file.size,
+    0,
+  );
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-2 py-6">
