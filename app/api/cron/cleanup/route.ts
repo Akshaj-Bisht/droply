@@ -1,5 +1,5 @@
-import { cleanupExpiredFiles } from "@/lib/cleanup";
 import { NextResponse } from "next/server";
+import { cleanupExpiredFiles } from "@/lib/cleanup";
 
 export async function GET(req: Request) {
   // Optional security

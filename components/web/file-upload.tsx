@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import { FolderOpen, Upload, X } from "lucide-react";
 import { motion } from "motion/react";
+import { useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FolderOpen, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { MAX_TOTAL_SIZE } from "@/lib/schema";
+import { cn } from "@/lib/utils";
 
 export function FileUpload({
   onUpload,
@@ -21,8 +21,6 @@ export function FileUpload({
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   /* Calculate total size of files */
-  const totalSize = files.reduce((acc, file) => acc + file.size, 0);
-
   /* Check and add files with size validation */
   const addFiles = (newFiles: File[]) => {
     const currentTotal = files.reduce((acc, file) => acc + file.size, 0);
@@ -40,7 +38,7 @@ export function FileUpload({
   };
 
   /* Dropzone */
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, isDragActive } = useDropzone({
     multiple: true,
     noClick: true,
     onDrop: (acceptedFiles) => {
@@ -96,7 +94,7 @@ export function FileUpload({
           multiple
           className="hidden"
           // TS doesn't know this attribute, so we cast
-          {...({ webkitdirectory: "" } as any)}
+          {...({ webkitdirectory: "" } as Record<string, unknown>)}
           onChange={(e) => {
             const newFiles = Array.from(e.target.files || []);
             addFiles(newFiles);
@@ -144,7 +142,7 @@ export function FileUpload({
 
         {files.length > 0 && (
           <div className="mt-8 space-y-2 max-h-64 overflow-y-auto">
-            {files.map((file, i) => {
+            {files.map((file, index) => {
               // Format file size with appropriate unit
               const formatFileSize = (bytes: number) => {
                 if (bytes === 0) return "0 B";
@@ -156,7 +154,7 @@ export function FileUpload({
 
               return (
                 <motion.div
-                  key={i}
+                  key={`${file.name}-${file.size}-${file.lastModified}`}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-center justify-between rounded-md border bg-background px-3 py-2 text-sm"
@@ -169,7 +167,8 @@ export function FileUpload({
                   </div>
 
                   <button
-                    onClick={() => removeFile(i)}
+                    type="button"
+                    onClick={() => removeFile(index)}
                     className="rounded-md p-1 hover:bg-muted"
                   >
                     <X className="h-4 w-4" />

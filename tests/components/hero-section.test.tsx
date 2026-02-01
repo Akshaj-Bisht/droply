@@ -1,12 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import type { ComponentPropsWithoutRef } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock framer-motion
 vi.mock("motion/react", () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-    p: ({ children, ...props }: any) => <p {...props}>{children}</p>,
+    div: ({ children, ...props }: ComponentPropsWithoutRef<"div">) => (
+      <div {...props}>{children}</div>
+    ),
+    span: ({ children, ...props }: ComponentPropsWithoutRef<"span">) => (
+      <span {...props}>{children}</span>
+    ),
+    p: ({ children, ...props }: ComponentPropsWithoutRef<"p">) => (
+      <p {...props}>{children}</p>
+    ),
   },
 }));
 

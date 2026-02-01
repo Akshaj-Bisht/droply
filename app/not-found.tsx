@@ -1,6 +1,6 @@
+import { FileQuestion } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileQuestion } from "lucide-react";
 
 export default function NotFound() {
   return (

@@ -1,21 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MAX_TOTAL_SIZE } from "@/lib/schema";
 
 // Mock framer-motion
 vi.mock("motion/react", () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-    p: ({ children, ...props }: any) => <p {...props}>{children}</p>,
+    div: ({
+      children,
+      whileHover,
+      ...props
+    }: ComponentPropsWithoutRef<"div"> & { whileHover?: unknown }) => (
+      <div {...props}>{children}</div>
+    ),
+    span: ({ children, ...props }: ComponentPropsWithoutRef<"span">) => (
+      <span {...props}>{children}</span>
+    ),
+    p: ({ children, ...props }: ComponentPropsWithoutRef<"p">) => (
+      <p {...props}>{children}</p>
+    ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
 // Mock react-dropzone with controllable behavior
 const mockOnDrop = vi.fn();
 vi.mock("react-dropzone", () => ({
-  useDropzone: ({ onDrop }: any) => {
+  useDropzone: ({ onDrop }: { onDrop: (files: File[]) => void }) => {
     mockOnDrop.mockImplementation(onDrop);
     return {
       getRootProps: () => ({}),
@@ -33,8 +44,8 @@ vi.mock("sonner", () => ({
   },
 }));
 
-import { FileUpload } from "@/components/web/file-upload";
 import { toast } from "sonner";
+import { FileUpload } from "@/components/web/file-upload";
 
 describe("FileUpload Component", () => {
   beforeEach(() => {
@@ -112,7 +123,9 @@ describe("FileUpload Size Validation", () => {
     Object.defineProperty(largeFile, "size", { value: MAX_TOTAL_SIZE + 1 });
 
     // Trigger the onDrop callback
-    mockOnDrop([largeFile]);
+    act(() => {
+      mockOnDrop([largeFile]);
+    });
 
     expect(toast.error).toHaveBeenCalledWith("Upload limit exceeded", {
       description:
@@ -128,7 +141,9 @@ describe("FileUpload Size Validation", () => {
     });
     Object.defineProperty(validFile, "size", { value: 1024 }); // 1KB
 
-    mockOnDrop([validFile]);
+    act(() => {
+      mockOnDrop([validFile]);
+    });
 
     // Should NOT show error
     expect(toast.error).not.toHaveBeenCalled();
@@ -140,7 +155,9 @@ describe("FileUpload Size Validation", () => {
     const maxFile = new File([""], "max.zip", { type: "application/zip" });
     Object.defineProperty(maxFile, "size", { value: MAX_TOTAL_SIZE });
 
-    mockOnDrop([maxFile]);
+    act(() => {
+      mockOnDrop([maxFile]);
+    });
 
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -153,7 +170,9 @@ describe("FileUpload Size Validation", () => {
     Object.defineProperty(file1, "size", { value: 600 * 1024 * 1024 }); // 600MB
     Object.defineProperty(file2, "size", { value: 500 * 1024 * 1024 }); // 500MB
 
-    mockOnDrop([file1, file2]); // Total: 1.1GB
+    act(() => {
+      mockOnDrop([file1, file2]); // Total: 1.1GB
+    });
 
     expect(toast.error).toHaveBeenCalledWith("Upload limit exceeded", {
       description:
@@ -178,7 +197,9 @@ describe("FileUpload Multiple Files", () => {
       return file;
     });
 
-    mockOnDrop(files);
+    act(() => {
+      mockOnDrop(files);
+    });
 
     expect(toast.error).not.toHaveBeenCalled();
   });

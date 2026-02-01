@@ -1,11 +1,11 @@
+import { ArrowRight, Check, Copy, Download } from "lucide-react";
 import { motion } from "motion/react";
 import { QRCodeCanvas } from "qrcode.react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { Spinner } from "@/components/ui/spinner";
-import { Check, Copy, Download, ArrowRight, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 /* Skeleton Loading State */
 export function ShareResultSkeleton({
@@ -109,7 +109,7 @@ export default function ShareResult({ url }: { url: string }) {
     if (!qrRef.current) return;
 
     const blob = await new Promise<Blob | null>((resolve) =>
-      qrRef.current!.toBlob(resolve),
+      qrRef.current?.toBlob(resolve),
     );
 
     if (!blob) return;

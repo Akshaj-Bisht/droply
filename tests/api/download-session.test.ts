@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock archiver first (before other mocks)
 vi.mock("archiver", () => ({
@@ -26,13 +26,20 @@ vi.mock("@/lib/appwrite", () => ({
 
 // Import after mocking
 import { GET } from "@/app/api/download/session/[token]/route";
-import prisma from "@/lib/db";
 import { storage } from "@/lib/appwrite";
+import prisma from "@/lib/db";
 
 describe("Session Download API (Zip)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("NEXT_PUBLIC_APPWRITE_BUCKET_ID", "test-bucket");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(100)),
+      }),
+    );
   });
 
   it("should return 404 when session not found", async () => {
@@ -57,8 +64,11 @@ describe("Session Download API (Zip)", () => {
       id: "session-1",
       token: "test-token",
       expiresAt: expiredDate,
+      createdAt: new Date(),
       files: [],
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.uploadSession.findUnique>>
+    >);
 
     const req = new Request("http://localhost/api/download/session/test-token");
     const response = await GET(req, {
@@ -77,6 +87,7 @@ describe("Session Download API (Zip)", () => {
       id: "session-1",
       token: "test-token",
       expiresAt: futureDate,
+      createdAt: new Date(),
       files: [
         {
           id: "file-1",
@@ -85,10 +96,12 @@ describe("Session Download API (Zip)", () => {
           path: "test.txt",
         },
       ],
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.uploadSession.findUnique>>
+    >);
 
     vi.mocked(storage.getFileDownload).mockResolvedValue(
-      new ArrayBuffer(100) as any,
+      "https://example.com/file.zip",
     );
 
     const req = new Request("http://localhost/api/download/session/test-token");
@@ -110,8 +123,11 @@ describe("Session Download API (Zip)", () => {
       id: "session-1",
       token,
       expiresAt: futureDate,
+      createdAt: new Date(),
       files: [],
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.uploadSession.findUnique>>
+    >);
 
     const req = new Request(`http://localhost/api/download/session/${token}`);
     const response = await GET(req, { params: Promise.resolve({ token }) });

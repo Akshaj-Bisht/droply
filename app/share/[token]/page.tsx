@@ -1,18 +1,18 @@
-import { orpc } from "@/lib/orpc.server";
-import { Button } from "@/components/ui/button";
-import Navbar from "@/components/web/navbar";
 import {
+  Clock,
   Download,
   File,
-  FileText,
-  FileImage,
-  FileVideo,
-  FileAudio,
   FileArchive,
+  FileAudio,
   FileCode,
-  Clock,
+  FileImage,
+  FileText,
+  FileVideo,
 } from "lucide-react";
 import type { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import Navbar from "@/components/web/navbar";
+import { orpc } from "@/lib/orpc.server";
 
 export const metadata: Metadata = {
   title: "Download Shared Files",

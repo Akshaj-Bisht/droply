@@ -1,5 +1,5 @@
-import { storage } from "./appwrite";
 import { ID } from "appwrite";
+import { storage } from "./appwrite";
 
 // Fast parallel uploads with retry
 const BATCH_SIZE = 3; // Upload 3 files at a time in parallel
@@ -17,16 +17,21 @@ async function uploadWithRetry(
   retryDelay = INITIAL_RETRY_DELAY,
 ): Promise<string> {
   try {
+    const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
+    if (!bucketId) {
+      throw new Error("Missing Appwrite bucket configuration");
+    }
     const res = await storage.createFile({
-      bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
+      bucketId,
       fileId: ID.unique(),
       file,
     });
     return res.$id;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const maybeError = error as { code?: number; message?: string };
     if (
       retries > 0 &&
-      (error?.code === 429 || error?.message?.includes("rate limit"))
+      (maybeError?.code === 429 || maybeError?.message?.includes("rate limit"))
     ) {
       // Rate limit error - wait with exponential backoff and retry silently
       await delay(retryDelay);

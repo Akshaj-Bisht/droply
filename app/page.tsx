@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
+import { useState } from "react";
 import { FileUpload } from "@/components/web/file-upload";
-import { uploadFilesInBatches } from "@/lib/appwrite-upload";
-import { orpc } from "@/lib/orpc";
 import HeroSection from "@/components/web/hero-section";
 import ShareResult, {
   ShareResultSkeleton,
 } from "@/components/web/share-result";
+import { uploadFilesInBatches } from "@/lib/appwrite-upload";
+import { orpc } from "@/lib/orpc";
+
+type FileWithRelativePath = File & { webkitRelativePath?: string };
 
 export default function Home() {
   const [shareToken, setShareToken] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function Home() {
         name: file.name,
         size: file.size,
         storageKey,
-        path: (file as any).webkitRelativePath || file.name,
+        path: (file as FileWithRelativePath).webkitRelativePath || file.name,
       }));
 
       setIsCreatingSession(true);

@@ -1,5 +1,5 @@
-import prisma from "@/lib/db";
 import { storage } from "@/lib/appwrite";
+import prisma from "@/lib/db";
 
 export async function cleanupExpiredFiles() {
   const expiredSessions = await prisma.uploadSession.findMany({
@@ -15,10 +15,14 @@ export async function cleanupExpiredFiles() {
 
   for (const session of expiredSessions) {
     try {
+      const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
+      if (!bucketId) {
+        throw new Error("Missing Appwrite bucket configuration");
+      }
       // Delete each file from Appwrite
       for (const file of session.files) {
         await storage.deleteFile({
-          bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
+          bucketId,
           fileId: file.storageKey,
         });
       }

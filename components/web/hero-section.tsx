@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import Navbar from "@/components/web/navbar";
 
-const words = ["Upload.", "Share.", "Done."];
+const words = ["Upload.", "Share.", "Done."] as const;
 
 export default function HeroSection() {
   return (
@@ -14,7 +14,7 @@ export default function HeroSection() {
       <h1 className="mt-12 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl bg-linear-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">
         {words.map((word, i) => (
           <motion.span
-            key={i}
+            key={word}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.15 }}

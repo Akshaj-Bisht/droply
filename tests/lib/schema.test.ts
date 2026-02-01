@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  uploadFileSchema,
   createSessionSchema,
   getSessionSchema,
   MAX_TOTAL_SIZE,
+  uploadFileSchema,
 } from "@/lib/schema";
 
 describe("Schema Validation", () => {

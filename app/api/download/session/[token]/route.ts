@@ -1,11 +1,16 @@
-import prisma from "@/lib/db";
-import { storage } from "@/lib/appwrite";
 import archiver from "archiver";
 import { NextResponse } from "next/server";
+import { storage } from "@/lib/appwrite";
+import prisma from "@/lib/db";
 
 async function fetchFileContent(storageKey: string): Promise<ArrayBuffer> {
+  const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
+  if (!bucketId) {
+    throw new Error("Server is missing Appwrite bucket configuration");
+  }
+
   const downloadUrl = storage.getFileDownload({
-    bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!,
+    bucketId,
     fileId: storageKey,
   });
 
@@ -17,7 +22,7 @@ async function fetchFileContent(storageKey: string): Promise<ArrayBuffer> {
 }
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;

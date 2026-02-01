@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock modules with inline factories (hoisted)
 vi.mock("@/lib/db", () => ({
@@ -18,8 +18,8 @@ vi.mock("@/lib/appwrite", () => ({
 
 // Import after mocking
 import { GET } from "@/app/api/download/[fileId]/route";
-import prisma from "@/lib/db";
 import { storage } from "@/lib/appwrite";
+import prisma from "@/lib/db";
 
 describe("File Download API", () => {
   beforeEach(() => {
@@ -51,7 +51,9 @@ describe("File Download API", () => {
         id: "session-1",
         expiresAt: expiredDate,
       },
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.file.findUnique>>
+    >);
 
     const req = new Request("http://localhost/api/download/file-1");
     const response = await GET(req, {
@@ -74,11 +76,15 @@ describe("File Download API", () => {
         id: "session-1",
         expiresAt: futureDate,
       },
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.file.findUnique>>
+    >);
 
-    vi.mocked(prisma.file.update).mockResolvedValue({} as any);
+    vi.mocked(prisma.file.update).mockResolvedValue(
+      {} as Awaited<ReturnType<typeof prisma.file.update>>,
+    );
     vi.mocked(storage.getFileDownload).mockReturnValue(
-      "https://appwrite.io/download/file" as any,
+      "https://appwrite.io/download/file",
     );
 
     const req = new Request("http://localhost/api/download/file-1");
@@ -103,11 +109,15 @@ describe("File Download API", () => {
         id: "session-1",
         expiresAt: futureDate,
       },
-    } as any);
+    } as unknown as NonNullable<
+      Awaited<ReturnType<typeof prisma.file.findUnique>>
+    >);
 
-    vi.mocked(prisma.file.update).mockResolvedValue({} as any);
+    vi.mocked(prisma.file.update).mockResolvedValue(
+      {} as Awaited<ReturnType<typeof prisma.file.update>>,
+    );
     vi.mocked(storage.getFileDownload).mockReturnValue(
-      "https://appwrite.io/download/file" as any,
+      "https://appwrite.io/download/file",
     );
 
     const req = new Request("http://localhost/api/download/file-1");
