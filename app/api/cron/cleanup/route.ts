@@ -4,8 +4,13 @@ import { cleanupExpiredFiles } from "@/lib/cleanup";
 export async function GET(req: Request) {
   // Optional security
   const auth = req.headers.get("authorization");
+  const { searchParams } = new URL(req.url);
+  const querySecret = searchParams.get("secret");
+  const expectedSecret = process.env.CRON_SECRET;
+  const hasValidAuth = auth === `Bearer ${expectedSecret}`;
+  const hasValidQuery = querySecret && querySecret === expectedSecret;
 
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidAuth && !hasValidQuery) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
