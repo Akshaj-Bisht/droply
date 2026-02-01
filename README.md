@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Droply
+
+Droply is a lightweight file-sharing app that lets you upload files or folders, generate a single share link, and automatically expire everything after 24 hours. It uses Appwrite for storage and Postgres via Prisma for session metadata.
+
+## Features
+
+- Upload files or folders with drag-and-drop
+- Share a single link for all files
+- Automatic 24-hour expiration and cleanup
+- Download individual files or a full ZIP
+- QR code for quick mobile sharing
+- 1GB total upload limit per session
+
+## Tech Stack
+
+- Next.js (App Router) + React 19
+- Appwrite Storage
+- Prisma + Postgres
+- orpc + TanStack Query
+- Zod for validation
+- Tailwind CSS + shadcn/ui
+- Motion for animations
+- Vitest for tests
 
 ## Getting Started
 
-First, run the development server:
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure environment variables
+
+Create a `.env` file in the project root with the following variables:
+
+```bash
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_APPWRITE_PROJECT_ID="..."
+NEXT_PUBLIC_APPWRITE_PROJECT_NAME="droply"
+NEXT_PUBLIC_APPWRITE_ENDPOINT="https://<region>.cloud.appwrite.io/v1"
+NEXT_PUBLIC_APPWRITE_BUCKET_ID="temp-files"
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+NEXT_PUBLIC_SITE_URL="https://your-domain.example"
+CRON_SECRET="your-secret"
+```
+
+### 3) Set up the database
+
+```bash
+npx prisma migrate dev
+```
+
+### 4) Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - start the dev server
+- `npm run build` - build for production
+- `npm run start` - run the production server
+- `npm run lint` - run Biome checks
+- `npm run format` - format with Biome
+- `npm run test` - run Vitest (watch)
+- `npm run test:run` - run Vitest once
+- `npm run test:coverage` - run tests with coverage
+- `npm run type-check` - TypeScript type check
 
-## Learn More
+## API Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `GET /api/download/[fileId]` - download a single file
+- `GET /api/download/session/[token]` - download a ZIP of all files
+- `GET /api/cron/cleanup` - delete expired sessions (requires `Authorization: Bearer <CRON_SECRET>`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How Expiration Works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Each upload session is valid for 24 hours. A cleanup job can be triggered by hitting the cron endpoint which removes expired files from Appwrite and deletes their metadata from Postgres.
 
-## Deploy on Vercel
+## Deployment Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Ensure the Appwrite bucket exists and is accessible from your deployment.
+- Schedule a cron job to call `/api/cron/cleanup` at your preferred interval.
