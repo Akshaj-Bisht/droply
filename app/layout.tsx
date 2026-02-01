@@ -81,7 +81,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>{children}</Providers>
+          <Providers>
+            <div className="min-h-screen flex flex-col">
+              <main className="flex-1">{children}</main>
+              <footer className="py-6 text-center text-xs text-muted-foreground">
+                © 2026 droply.akshajbisht.me
+              </footer>
+            </div>
+          </Providers>
           <Toaster />
         </ThemeProvider>
       </body>
