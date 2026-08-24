@@ -19,5 +19,6 @@ export const createSessionSchema = z
   );
 
 export const getSessionSchema = z.object({
-  token: z.string().length(32),
+  // 32-character hexadecimal tokens are accepted so existing shared links stay valid.
+  token: z.string().regex(/^(?:[A-Za-z0-9]{5}|[a-f0-9]{32})$/),
 });

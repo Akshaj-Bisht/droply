@@ -1,7 +1,18 @@
-import { randomBytes } from "node:crypto";
 import { os } from "@orpc/server";
 import prisma from "@/lib/db";
 import { createSessionSchema, getSessionSchema } from "@/lib/schema";
+import { createShareToken } from "@/lib/share-token";
+
+const MAX_TOKEN_ATTEMPTS = 10;
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
+}
 
 export const createUploadSession = os
   .route({
@@ -14,13 +25,30 @@ export const createUploadSession = os
   })
   .input(createSessionSchema)
   .handler(async ({ input }) => {
-    const sessionToken = randomBytes(16).toString("hex");
-    const session = await prisma.uploadSession.create({
-      data: {
-        token: sessionToken,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-      },
-    });
+    let session: { id: string } | undefined;
+    let sessionToken = "";
+
+    for (let attempt = 0; attempt < MAX_TOKEN_ATTEMPTS; attempt += 1) {
+      sessionToken = createShareToken();
+
+      try {
+        session = await prisma.uploadSession.create({
+          data: {
+            token: sessionToken,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+          },
+        });
+        break;
+      } catch (error) {
+        if (!isUniqueConstraintError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!session) {
+      throw new Error("Unable to create a unique share link. Please try again.");
+    }
 
     for (const file of input) {
       await prisma.file.create({

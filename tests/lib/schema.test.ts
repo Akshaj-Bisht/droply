@@ -202,22 +202,22 @@ describe("Schema Validation", () => {
   });
 
   describe("getSessionSchema", () => {
-    it("should validate a 32-character token", () => {
-      const validToken = { token: "a".repeat(32) };
+    it("should validate a 5-character mixed-case alphanumeric token", () => {
+      const validToken = { token: "aZ9cQ" };
 
       const result = getSessionSchema.safeParse(validToken);
       expect(result.success).toBe(true);
     });
 
-    it("should reject tokens shorter than 32 characters", () => {
-      const shortToken = { token: "a".repeat(31) };
+    it("should reject tokens shorter than 5 characters", () => {
+      const shortToken = { token: "aZ9c" };
 
       const result = getSessionSchema.safeParse(shortToken);
       expect(result.success).toBe(false);
     });
 
-    it("should reject tokens longer than 32 characters", () => {
-      const longToken = { token: "a".repeat(33) };
+    it("should reject tokens longer than 5 characters", () => {
+      const longToken = { token: "aZ9cQ1" };
 
       const result = getSessionSchema.safeParse(longToken);
       expect(result.success).toBe(false);
@@ -230,12 +230,18 @@ describe("Schema Validation", () => {
       expect(result.success).toBe(false);
     });
 
-    it("should validate hex token format", () => {
-      // Real token from randomBytes(16).toString('hex')
+    it("should accept legacy 32-character hexadecimal tokens", () => {
       const hexToken = { token: "a1b2c3d4e5f6789012345678abcdef00" };
 
       const result = getSessionSchema.safeParse(hexToken);
       expect(result.success).toBe(true);
+    });
+
+    it("should reject tokens with characters outside the share-token alphabet", () => {
+      const tokenWithSymbol = { token: "aZ9-_" };
+
+      const result = getSessionSchema.safeParse(tokenWithSymbol);
+      expect(result.success).toBe(false);
     });
 
     it("should reject missing token property", () => {
