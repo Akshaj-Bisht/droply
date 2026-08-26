@@ -8,7 +8,10 @@ import HeroSection from "@/components/web/hero-section";
 import ShareResult, {
   ShareResultSkeleton,
 } from "@/components/web/share-result";
-import { uploadFilesInBatches } from "@/lib/appwrite-upload";
+import {
+  type UploadProgress,
+  uploadFilesInBatches,
+} from "@/lib/appwrite-upload";
 import { orpc } from "@/lib/orpc";
 import { saveToHistory } from "@/lib/upload-history";
 
@@ -19,10 +22,9 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [historyVersion, setHistoryVersion] = useState(0);
-  const [uploadProgress, setUploadProgress] = useState({
-    completed: 0,
-    total: 0,
-  });
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
+    null,
+  );
 
   const createSession = useMutation(
     orpc.file.createSession.mutationOptions({
@@ -37,11 +39,11 @@ export default function Home() {
 
     setIsUploading(true);
     setShareToken(null);
-    setUploadProgress({ completed: 0, total: files.length });
+    setUploadProgress(null);
 
     try {
-      const results = await uploadFilesInBatches(files, (completed, total) => {
-        setUploadProgress({ completed, total });
+      const results = await uploadFilesInBatches(files, (progress) => {
+        setUploadProgress(progress);
       });
 
       const uploadedFiles = results.map(({ file, storageKey }) => ({
@@ -85,7 +87,7 @@ export default function Home() {
           {(isUploading || isCreatingSession) && (
             <ShareResultSkeleton
               key="skeleton"
-              progress={uploadProgress.total > 0 ? uploadProgress : undefined}
+              progress={uploadProgress}
               isCreatingSession={isCreatingSession}
             />
           )}

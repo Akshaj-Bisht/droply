@@ -6,18 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import type { UploadProgress } from "@/lib/appwrite-upload";
 
 /* Skeleton Loading State */
 export function ShareResultSkeleton({
   progress,
   isCreatingSession,
 }: {
-  progress?: { completed: number; total: number };
+  progress?: UploadProgress | null;
   isCreatingSession?: boolean;
 }) {
   const percentage = progress
-    ? Math.round((progress.completed / progress.total) * 100)
+    ? Math.round((progress.totalBytesUploaded / progress.totalBytes) * 100)
     : 0;
+
+  function formatBytes(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 
   return (
     <motion.div
@@ -47,13 +54,23 @@ export function ShareResultSkeleton({
           <div className="flex items-center justify-center gap-2">
             <Spinner className="size-5" />
             <span className="text-sm font-medium">
-              Uploading {progress.completed} of {progress.total} files...
+              Uploading {progress.completedFiles + 1} of {progress.totalFiles}{" "}
+              files...
             </span>
           </div>
           <Progress value={percentage} className="h-2" />
-          <p className="text-center text-xs text-muted-foreground">
-            {percentage}% complete
-          </p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="truncate max-w-[60%]">
+              {progress.currentFile || "Processing..."}
+            </span>
+            <span>
+              {progress.completedFiles < progress.totalFiles
+                ? `${progress.currentFileProgress}%`
+                : "100%"}{" "}
+              · {formatBytes(progress.totalBytesUploaded)} /{" "}
+              {formatBytes(progress.totalBytes)}
+            </span>
+          </div>
         </div>
       )}
 
