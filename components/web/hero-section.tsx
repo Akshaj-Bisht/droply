@@ -5,10 +5,10 @@ import Navbar from "@/components/web/navbar";
 
 const words = ["Upload.", "Share.", "Done."] as const;
 
-export default function HeroSection() {
+export default function HeroSection({ historyVersion }: { historyVersion?: number }) {
   return (
     <section className="relative mx-auto max-w-6xl px-2 pt-6 pb-16 text-center bg-linear-to-b from-muted/40 to-background dark:from-background dark:to-background ">
-      <Navbar />
+      <Navbar historyVersion={historyVersion} />
 
       {/* Headline */}
       <h1 className="mt-12 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl bg-linear-to-b from-foreground to-muted-foreground bg-clip-text text-transparent">

@@ -10,6 +10,7 @@ import ShareResult, {
 } from "@/components/web/share-result";
 import { uploadFilesInBatches } from "@/lib/appwrite-upload";
 import { orpc } from "@/lib/orpc";
+import { saveToHistory } from "@/lib/upload-history";
 
 type FileWithRelativePath = File & { webkitRelativePath?: string };
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const [uploadProgress, setUploadProgress] = useState({
     completed: 0,
     total: 0,
@@ -55,6 +57,13 @@ export default function Home() {
           setIsUploading(false);
           setIsCreatingSession(false);
         },
+        onSuccess: (data) => {
+          saveToHistory(
+            data.token,
+            uploadedFiles.map((f) => ({ name: f.name, size: f.size })),
+          );
+          setHistoryVersion((v) => v + 1);
+        },
       });
     } catch (error) {
       console.error("Upload failed:", error);
@@ -67,7 +76,7 @@ export default function Home() {
 
   return (
     <>
-      <HeroSection />
+      <HeroSection historyVersion={historyVersion} />
       <main className="mx-auto max-w-4xl px-6 pb-16">
         {/* Upload UI */}
         <FileUpload onUpload={handleUpload} />

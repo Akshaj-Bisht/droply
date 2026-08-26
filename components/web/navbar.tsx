@@ -3,6 +3,7 @@
 import { Droplet } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/web/theme-toggle";
+import { UploadHistory } from "@/components/web/upload-history";
 
 function GithubIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +19,7 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-export default function Navbar() {
+export default function Navbar({ historyVersion }: { historyVersion?: number }) {
   return (
     <nav className="  flex items-center justify-between rounded-full border bg-background/70 backdrop-blur px-6 py-3">
       <Link
@@ -40,6 +41,7 @@ export default function Navbar() {
         >
           <GithubIcon className="h-5 w-5" />
         </a>
+        <UploadHistory onEntryAdded={historyVersion} />
         <ThemeToggle />
       </div>
     </nav>
