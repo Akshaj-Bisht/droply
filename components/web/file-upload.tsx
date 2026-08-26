@@ -54,20 +54,27 @@ export function FileUpload({
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  /* Start renaming */
+  /* Start renaming — show name without extension */
   const startRename = (index: number) => {
+    const name = files[index].name;
+    const lastDot = name.lastIndexOf(".");
+    const baseName = lastDot > 0 ? name.slice(0, lastDot) : name;
     setRenamingIndex(index);
-    setRenameValue(files[index].name);
+    setRenameValue(baseName);
     setTimeout(() => renameInputRef.current?.focus(), 0);
   };
 
-  /* Confirm rename */
+  /* Confirm rename — re-append original extension */
   const confirmRename = () => {
     if (renamingIndex === null) return;
     const trimmed = renameValue.trim();
-    if (trimmed && trimmed !== files[renamingIndex].name) {
-      const oldFile = files[renamingIndex];
-      const newFile = new File([oldFile], trimmed, {
+    const oldFile = files[renamingIndex];
+    const lastDot = oldFile.name.lastIndexOf(".");
+    const ext = lastDot > 0 ? oldFile.name.slice(lastDot) : "";
+    const newName = trimmed ? trimmed + ext : oldFile.name;
+
+    if (newName !== oldFile.name) {
+      const newFile = new File([oldFile], newName, {
         type: oldFile.type,
         lastModified: oldFile.lastModified,
       });
@@ -190,21 +197,29 @@ export function FileUpload({
                 >
                   <div className="min-w-0 flex-1">
                     {isRenaming ? (
-                      <input
-                        ref={renameInputRef}
-                        type="text"
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={confirmRename}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") confirmRename();
-                          if (e.key === "Escape") {
-                            setRenamingIndex(null);
-                            setRenameValue("");
-                          }
-                        }}
-                        className="w-full bg-transparent border-b border-primary outline-none text-sm py-0.5"
-                      />
+                      <div className="flex items-center gap-0">
+                        <input
+                          ref={renameInputRef}
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={confirmRename}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") confirmRename();
+                            if (e.key === "Escape") {
+                              setRenamingIndex(null);
+                              setRenameValue("");
+                            }
+                          }}
+                          className="min-w-0 flex-1 bg-transparent border-b border-primary outline-none text-sm py-0.5"
+                        />
+                        <span className="text-sm text-muted-foreground shrink-0">
+                          {(() => {
+                            const lastDot = file.name.lastIndexOf(".");
+                            return lastDot > 0 ? file.name.slice(lastDot) : "";
+                          })()}
+                        </span>
+                      </div>
                     ) : (
                       <p className="truncate">{file.name}</p>
                     )}
