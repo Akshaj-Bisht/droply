@@ -8,7 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import type { UploadProgress } from "@/lib/appwrite-upload";
 
-const cardSpring = { type: "spring" as const, stiffness: 200, damping: 26 };
+const cardSpring = { type: "spring" as const, stiffness: 120, damping: 22 };
+const fadeSlide = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const },
+};
 
 /* Skeleton Loading State */
 export function ShareResultSkeleton({
@@ -44,9 +50,9 @@ export function ShareResultSkeleton({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -15, scale: 0.97 }}
+      exit={{ opacity: 0, y: -12, scale: 0.98 }}
       transition={cardSpring}
       className="mx-auto mt-8 max-w-2xl rounded-2xl border bg-card p-8 shadow-lg overflow-hidden"
     >
@@ -54,10 +60,8 @@ export function ShareResultSkeleton({
         {activeKey === "creating" && (
           <motion.div
             key="creating"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            {...fadeSlide}
+            transition={{ ...fadeSlide.transition, delay: 0.05 }}
             className="space-y-3"
           >
             <div className="flex items-center justify-center gap-2">
@@ -74,14 +78,7 @@ export function ShareResultSkeleton({
         )}
 
         {activeKey === "progress" && progress && (
-          <motion.div
-            key="progress"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="space-y-3"
-          >
+          <motion.div key="progress" {...fadeSlide} className="space-y-3">
             <div className="flex items-center justify-center gap-2">
               <Spinner className="size-5" />
               <span className="text-sm font-medium">
@@ -111,14 +108,7 @@ export function ShareResultSkeleton({
         )}
 
         {activeKey === "skeleton" && (
-          <motion.div
-            key="skeleton"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="space-y-3"
-          >
+          <motion.div key="skeleton" {...fadeSlide} className="space-y-3">
             <div className="flex justify-center">
               <Skeleton className="h-7 w-56" />
             </div>
@@ -181,27 +171,29 @@ export default function ShareResult({ url }: { url: string }) {
     link.click();
   }
 
+  const childFade = (delay: number) => ({
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay, ...cardSpring },
+  });
+
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -15, scale: 0.97 }}
+      exit={{ opacity: 0, y: -12, scale: 0.98 }}
       transition={cardSpring}
       className="mx-auto mt-8 max-w-2xl rounded-2xl border bg-card p-8 shadow-lg overflow-hidden"
     >
       <motion.h2
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, ...cardSpring }}
+        {...childFade(0.1)}
         className="text-xl font-semibold text-center"
       >
         Files uploaded successfully
       </motion.h2>
       <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.3 }}
+        {...childFade(0.15)}
         className="mt-2 text-center text-xs text-muted-foreground"
       >
         Files will be automatically deleted in 24 hours
@@ -209,9 +201,7 @@ export default function ShareResult({ url }: { url: string }) {
 
       {/* LINK BOX */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, ...cardSpring }}
+        {...childFade(0.2)}
         className="mt-5 flex items-center gap-2 rounded-xl border bg-muted/30 px-4 py-3"
       >
         <p className="flex-1 break-all text-sm font-medium">{url}</p>
@@ -231,12 +221,7 @@ export default function ShareResult({ url }: { url: string }) {
       </motion.div>
 
       {/* QR */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3, ...cardSpring }}
-        className="mt-8 flex justify-center"
-      >
+      <motion.div {...childFade(0.28)} className="mt-8 flex justify-center">
         <div className="rounded-xl bg-white p-3">
           <QRCodeCanvas ref={qrRef} value={url} size={140} />
         </div>
@@ -244,9 +229,7 @@ export default function ShareResult({ url }: { url: string }) {
 
       {/* QR ACTIONS */}
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.38, ...cardSpring }}
+        {...childFade(0.35)}
         className="mt-6 flex gap-3 justify-center"
       >
         <Button variant="outline" size="sm" onClick={copyQR}>
@@ -265,12 +248,7 @@ export default function ShareResult({ url }: { url: string }) {
       </motion.div>
 
       {/* GO TO DOWNLOAD PAGE */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45, ...cardSpring }}
-        className="mt-8"
-      >
+      <motion.div {...childFade(0.42)} className="mt-8">
         <Button asChild className="w-full" size="lg">
           <a href={url} target="_blank">
             Go to Download Page

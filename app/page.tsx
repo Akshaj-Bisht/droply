@@ -83,7 +83,7 @@ export default function Home() {
         {/* Upload UI */}
         <FileUpload onUpload={handleUpload} />
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {(isUploading || isCreatingSession) && uploadProgress && (
             <ShareResultSkeleton
               key="skeleton"
