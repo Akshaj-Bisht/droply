@@ -1,76 +1,21 @@
-import {
-  Clock,
-  Download,
-  File,
-  FileArchive,
-  FileAudio,
-  FileCode,
-  FileImage,
-  FileText,
-  FileVideo,
-} from "lucide-react";
+import { Clock, Download, File } from "lucide-react";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
+import { FileList } from "@/components/web/file-list";
 import Navbar from "@/components/web/navbar";
 import { orpc } from "@/lib/orpc.server";
+import { CopyLinkButton } from "./copy-link-button";
 
 export const metadata: Metadata = {
   title: "Download Shared Files",
   description:
     "Someone shared files with you on Droply. Download them securely before they expire.",
   robots: {
-    index: false, // Don't index share pages
+    index: false,
     follow: false,
   },
 };
 
-/* Get file icon based on extension */
-function getFileIcon(filename: string) {
-  const ext = filename.split(".").pop()?.toLowerCase() || "";
-
-  const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"];
-  const videoExts = ["mp4", "mov", "avi", "mkv", "webm", "flv"];
-  const audioExts = ["mp3", "wav", "ogg", "flac", "aac", "m4a"];
-  const archiveExts = ["zip", "rar", "7z", "tar", "gz", "bz2"];
-  const codeExts = [
-    "js",
-    "ts",
-    "jsx",
-    "tsx",
-    "html",
-    "css",
-    "json",
-    "py",
-    "java",
-    "c",
-    "cpp",
-    "go",
-    "rs",
-  ];
-  const docExts = [
-    "pdf",
-    "doc",
-    "docx",
-    "txt",
-    "md",
-    "rtf",
-    "xls",
-    "xlsx",
-    "ppt",
-    "pptx",
-  ];
-
-  if (imageExts.includes(ext)) return FileImage;
-  if (videoExts.includes(ext)) return FileVideo;
-  if (audioExts.includes(ext)) return FileAudio;
-  if (archiveExts.includes(ext)) return FileArchive;
-  if (codeExts.includes(ext)) return FileCode;
-  if (docExts.includes(ext)) return FileText;
-
-  return File;
-}
-
-/* Format file size */
 function formatFileSize(bytes: number) {
   if (bytes === 0) return "0 B";
   if (bytes < 1024) return `${bytes} B`;
@@ -80,7 +25,6 @@ function formatFileSize(bytes: number) {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
-/* Format time remaining */
 function formatTimeRemaining(expiresAt: Date | string) {
   const now = new Date();
   const expiry = new Date(expiresAt);
@@ -128,6 +72,7 @@ export default async function SharePage({
     (acc: number, file: { size: number }) => acc + file.size,
     0,
   );
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-2 py-6">
@@ -142,9 +87,12 @@ export default async function SharePage({
             {session.files.length === 1 ? "file" : "files"} •{" "}
             {formatFileSize(totalSize)}
           </p>
-          <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{formatTimeRemaining(session.expiresAt)}</span>
+          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>{formatTimeRemaining(session.expiresAt)}</span>
+            </div>
+            <CopyLinkButton token={token} />
           </div>
         </div>
 
@@ -159,45 +107,16 @@ export default async function SharePage({
         </div>
 
         {/* File List */}
-        <div className="mt-8 rounded-2xl border bg-card shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b bg-muted/30">
-            <h2 className="font-semibold">Files</h2>
-          </div>
-
-          <div className="divide-y">
-            {session.files.map(
-              (file: { id: string; name: string; size: number }) => {
-                const Icon = getFileIcon(file.name);
-
-                return (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors"
-                  >
-                    {/* File Icon */}
-                    <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-
-                    {/* File Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatFileSize(file.size)}
-                      </p>
-                    </div>
-
-                    {/* Download Button */}
-                    <Button variant="ghost" size="icon" asChild>
-                      <a href={`/api/download/${file.id}`}>
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-                );
-              },
+        <div className="mt-8">
+          <FileList
+            files={session.files.map(
+              (f: { id: string; name: string; size: number }) => ({
+                id: f.id,
+                name: f.name,
+                size: f.size,
+              }),
             )}
-          </div>
+          />
         </div>
 
         {/* Footer */}
