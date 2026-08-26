@@ -177,6 +177,15 @@ export function FileUpload({
 
         {files.length > 0 && (
           <div className="mt-8 space-y-2 max-h-64 overflow-y-auto">
+            <p className="text-xs text-muted-foreground px-1">
+              {files.length} {files.length === 1 ? "file" : "files"} · {(() => {
+                const total = files.reduce((acc, f) => acc + f.size, 0);
+                if (total < 1024) return `${total} B`;
+                if (total < 1024 * 1024)
+                  return `${(total / 1024).toFixed(1)} KB`;
+                return `${(total / (1024 * 1024)).toFixed(2)} MB`;
+              })()}
+            </p>
             {files.map((file, index) => {
               const formatFileSize = (bytes: number) => {
                 if (bytes === 0) return "0 B";

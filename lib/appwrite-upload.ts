@@ -19,6 +19,7 @@ export interface UploadProgress {
   currentFileProgress: number; // 0-100
   totalBytesUploaded: number;
   totalBytes: number;
+  speed: number; // bytes per second
 }
 
 // Small files: use SDK (simpler, fast enough)
@@ -179,6 +180,37 @@ export async function uploadFilesInBatches(
   const results: { file: File; storageKey: string }[] = [];
   const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
   let totalBytesUploaded = 0;
+  const startTime = Date.now();
+  let lastSpeedUpdate = startTime;
+  let lastBytesAtSpeedUpdate = 0;
+  let currentSpeed = 0;
+
+  function emitProgress(
+    batchIndex: number,
+    file: File,
+    fileBytesUploaded: number,
+  ) {
+    const now = Date.now();
+    const elapsed = (now - lastSpeedUpdate) / 1000;
+    if (elapsed >= 0.3) {
+      const bytesSinceLast =
+        totalBytesUploaded + fileBytesUploaded - lastBytesAtSpeedUpdate;
+      currentSpeed = bytesSinceLast / elapsed;
+      lastSpeedUpdate = now;
+      lastBytesAtSpeedUpdate = totalBytesUploaded + fileBytesUploaded;
+    }
+
+    onProgress?.({
+      completedFiles: results.length + batchIndex,
+      totalFiles: files.length,
+      currentFile: file.name,
+      currentFileProgress:
+        file.size > 0 ? Math.round((fileBytesUploaded / file.size) * 100) : 100,
+      totalBytesUploaded: totalBytesUploaded + fileBytesUploaded,
+      totalBytes,
+      speed: currentSpeed,
+    });
+  }
 
   for (let i = 0; i < files.length; i += BATCH_SIZE) {
     const batch = files.slice(i, i + BATCH_SIZE);
@@ -190,19 +222,7 @@ export async function uploadFilesInBatches(
 
         const storageKey = await uploadWithRetry(file, (bytes) => {
           fileBytesUploaded = bytes;
-          const currentFileProgress =
-            file.size > 0
-              ? Math.round((fileBytesUploaded / file.size) * 100)
-              : 100;
-
-          onProgress?.({
-            completedFiles: results.length + batchIndex,
-            totalFiles: files.length,
-            currentFile: file.name,
-            currentFileProgress,
-            totalBytesUploaded: totalBytesUploaded + fileBytesUploaded,
-            totalBytes,
-          });
+          emitProgress(batchIndex, file, fileBytesUploaded);
         });
 
         return { file, storageKey };
@@ -219,6 +239,7 @@ export async function uploadFilesInBatches(
       currentFileProgress: 100,
       totalBytesUploaded,
       totalBytes,
+      speed: currentSpeed,
     });
 
     if (i + BATCH_SIZE < files.length) {

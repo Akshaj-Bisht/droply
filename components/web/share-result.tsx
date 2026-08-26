@@ -28,6 +28,13 @@ export function ShareResultSkeleton({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  function formatSpeed(bytesPerSec: number) {
+    if (bytesPerSec < 1024) return `${bytesPerSec.toFixed(0)} B/s`;
+    if (bytesPerSec < 1024 * 1024)
+      return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
+    return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
+  }
+
   const activeKey = isCreatingSession
     ? "creating"
     : progress
@@ -84,15 +91,20 @@ export function ShareResultSkeleton({
             </div>
             <Progress value={percentage} className="h-2" />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="truncate max-w-[60%]">
+              <span className="truncate max-w-[40%]">
                 {progress.currentFile || "Processing..."}
               </span>
-              <span>
+              <span className="flex items-center gap-2">
                 {progress.completedFiles < progress.totalFiles
                   ? `${progress.currentFileProgress}%`
                   : "100%"}{" "}
                 · {formatBytes(progress.totalBytesUploaded)} /{" "}
                 {formatBytes(progress.totalBytes)}
+                {progress.speed > 0 && (
+                  <span className="text-muted-foreground/70">
+                    · {formatSpeed(progress.speed)}
+                  </span>
+                )}
               </span>
             </div>
           </motion.div>
