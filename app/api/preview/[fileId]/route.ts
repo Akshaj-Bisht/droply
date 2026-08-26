@@ -71,6 +71,26 @@ function getExtension(filename: string): string {
   return filename.split(".").pop()?.toLowerCase() || "";
 }
 
+async function streamResponse(url: string, headers: HeadersInit) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    return NextResponse.json(
+      { error: "Failed to fetch file" },
+      { status: 500 },
+    );
+  }
+  if (!response.body) {
+    return NextResponse.json({ error: "No response body" }, { status: 500 });
+  }
+  return new NextResponse(response.body, {
+    status: 200,
+    headers: {
+      ...headers,
+      "Content-Length": response.headers.get("Content-Length") || "",
+    },
+  });
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ fileId: string }> },
@@ -102,11 +122,14 @@ export async function GET(
   }
 
   const ext = getExtension(file.name);
+  const isLarge = file.size > 5 * 1024 * 1024;
 
   if (IMAGE_EXTENSIONS[ext]) {
     const previewUrl = storage.getFilePreview({
       bucketId,
       fileId: file.storageKey,
+      width: isLarge ? 1200 : undefined,
+      quality: isLarge ? 80 : undefined,
     });
     const response = await fetch(previewUrl);
     if (!response.ok) {
@@ -129,20 +152,10 @@ export async function GET(
       bucketId,
       fileId: file.storageKey,
     });
-    const response = await fetch(downloadUrl);
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch file" },
-        { status: 500 },
-      );
-    }
-    const blob = await response.arrayBuffer();
     const contentType = VIDEO_EXTENSIONS[ext] || AUDIO_EXTENSIONS[ext];
-    return new NextResponse(blob, {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=3600",
-      },
+    return streamResponse(downloadUrl, {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=3600",
     });
   }
 
@@ -176,20 +189,10 @@ export async function GET(
       bucketId,
       fileId: file.storageKey,
     });
-    const response = await fetch(downloadUrl);
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch file" },
-        { status: 500 },
-      );
-    }
-    const blob = await response.arrayBuffer();
-    return new NextResponse(blob, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": "inline",
-        "Cache-Control": "public, max-age=3600",
-      },
+    return streamResponse(downloadUrl, {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "inline",
+      "Cache-Control": "public, max-age=3600",
     });
   }
 
