@@ -84,7 +84,7 @@ export default function Home() {
         <FileUpload onUpload={handleUpload} />
 
         <AnimatePresence mode="wait">
-          {(isUploading || isCreatingSession) && (
+          {(isUploading || isCreatingSession) && uploadProgress && (
             <ShareResultSkeleton
               key="skeleton"
               progress={uploadProgress}
