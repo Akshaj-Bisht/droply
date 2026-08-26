@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderOpen, Upload, X } from "lucide-react";
+import { FolderOpen, Pencil, Upload, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -16,6 +16,9 @@ export function FileUpload({
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [renamingIndex, setRenamingIndex] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -49,6 +52,31 @@ export function FileUpload({
   /* Remove file */
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  /* Start renaming */
+  const startRename = (index: number) => {
+    setRenamingIndex(index);
+    setRenameValue(files[index].name);
+    setTimeout(() => renameInputRef.current?.focus(), 0);
+  };
+
+  /* Confirm rename */
+  const confirmRename = () => {
+    if (renamingIndex === null) return;
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== files[renamingIndex].name) {
+      const oldFile = files[renamingIndex];
+      const newFile = new File([oldFile], trimmed, {
+        type: oldFile.type,
+        lastModified: oldFile.lastModified,
+      });
+      setFiles((prev) =>
+        prev.map((f, i) => (i === renamingIndex ? newFile : f)),
+      );
+    }
+    setRenamingIndex(null);
+    setRenameValue("");
   };
 
   /* Upload */
@@ -143,7 +171,6 @@ export function FileUpload({
         {files.length > 0 && (
           <div className="mt-8 space-y-2 max-h-64 overflow-y-auto">
             {files.map((file, index) => {
-              // Format file size with appropriate unit
               const formatFileSize = (bytes: number) => {
                 if (bytes === 0) return "0 B";
                 if (bytes < 1024) return `${bytes} B`;
@@ -152,6 +179,8 @@ export function FileUpload({
                 return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
               };
 
+              const isRenaming = renamingIndex === index;
+
               return (
                 <motion.div
                   key={`${file.name}-${file.size}-${file.lastModified}`}
@@ -159,20 +188,50 @@ export function FileUpload({
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-center justify-between rounded-md border bg-background px-3 py-2 text-sm"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate">{file.name}</p>
+                  <div className="min-w-0 flex-1">
+                    {isRenaming ? (
+                      <input
+                        ref={renameInputRef}
+                        type="text"
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onBlur={confirmRename}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") confirmRename();
+                          if (e.key === "Escape") {
+                            setRenamingIndex(null);
+                            setRenameValue("");
+                          }
+                        }}
+                        className="w-full bg-transparent border-b border-primary outline-none text-sm py-0.5"
+                      />
+                    ) : (
+                      <p className="truncate">{file.name}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {formatFileSize(file.size)}
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="rounded-md p-1 hover:bg-muted"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                    {!isRenaming && (
+                      <button
+                        type="button"
+                        onClick={() => startRename(index)}
+                        className="rounded-md p-1 hover:bg-muted"
+                        title="Rename"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="rounded-md p-1 hover:bg-muted"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </motion.div>
               );
             })}
