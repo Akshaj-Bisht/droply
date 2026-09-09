@@ -5,6 +5,7 @@ import { FileList } from "@/components/web/file-list";
 import Navbar from "@/components/web/navbar";
 import { orpc } from "@/lib/orpc.server";
 import { CopyLinkButton } from "./copy-link-button";
+import SharePageQr from "./share-page-qr";
 
 export const metadata: Metadata = {
   title: "Download Shared Files",
@@ -95,6 +96,11 @@ export default async function SharePage({
             <CopyLinkButton token={token} />
           </div>
         </div>
+
+        {/* QR Code */}
+        <SharePageQr
+          url={`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/share/${token}`}
+        />
 
         {/* Download All Button */}
         <div className="mt-8">
