@@ -2,7 +2,7 @@
 
 import { ArrowRight, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -22,6 +22,7 @@ function getShareCode(value: string) {
 
 export function DownloadByCode() {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [shareCode, setShareCode] = useState("");
   const [error, setError] = useState("");
 
@@ -39,7 +40,20 @@ export function DownloadByCode() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm">
+    <fieldset
+      className="mt-6 cursor-text rounded-2xl border bg-card p-7 text-card-foreground shadow-sm"
+      onClick={(event) => {
+        if (!(event.target as HTMLElement).closest("button")) {
+          inputRef.current?.focus();
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          inputRef.current?.focus();
+        }
+      }}
+    >
+      <legend className="sr-only">Download shared files</legend>
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Download className="h-4 w-4" aria-hidden="true" />
@@ -58,6 +72,7 @@ export function DownloadByCode() {
             Share code
           </label>
           <Input
+            ref={inputRef}
             id="share-code"
             value={shareCode}
             onChange={(event) => {
@@ -65,6 +80,7 @@ export function DownloadByCode() {
               if (error) setError("");
             }}
             placeholder="Paste your share code or link"
+            className="h-10"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "share-code-error" : undefined}
           />
@@ -79,6 +95,6 @@ export function DownloadByCode() {
           <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
         </Button>
       </form>
-    </section>
+    </fieldset>
   );
 }

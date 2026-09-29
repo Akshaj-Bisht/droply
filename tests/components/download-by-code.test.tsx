@@ -25,6 +25,16 @@ describe("DownloadByCode Component", () => {
     expect(push).toHaveBeenCalledWith("/share/Ab123");
   });
 
+  it("focuses the input when the panel is clicked", () => {
+    render(<DownloadByCode />);
+
+    fireEvent.click(
+      screen.getByRole("heading", { name: "Download shared files" }),
+    );
+
+    expect(screen.getByLabelText("Share code")).toHaveFocus();
+  });
+
   it("extracts the code from a share link", () => {
     render(<DownloadByCode />);
 
