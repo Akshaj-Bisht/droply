@@ -90,7 +90,7 @@ export function DownloadByCode() {
             </p>
           )}
         </div>
-        <Button type="submit" size="lg" className="sm:self-start">
+        <Button type="submit" size="lg" className="sm:self-start h-10">
           Open files
           <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
         </Button>
