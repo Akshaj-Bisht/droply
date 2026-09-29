@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import { useState } from "react";
+import { DownloadByCode } from "@/components/web/download-by-code";
 import { FileUpload } from "@/components/web/file-upload";
 import HeroSection from "@/components/web/hero-section";
 import ShareResult, {
@@ -82,6 +83,7 @@ export default function Home() {
       <main className="mx-auto max-w-4xl px-6 pb-16">
         {/* Upload UI */}
         <FileUpload onUpload={handleUpload} />
+        <DownloadByCode />
 
         <AnimatePresence mode="popLayout">
           {(isUploading || isCreatingSession) && uploadProgress && (
